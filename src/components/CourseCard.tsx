@@ -3,6 +3,9 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Star, Users, Clock, Edit, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useEnrollments } from '@/hooks/use-enrollments';
+import { useToast } from '@/hooks/use-toast';
 
 interface CourseCardProps {
   course: Course;
@@ -12,6 +15,22 @@ interface CourseCardProps {
 }
 
 export function CourseCard({ course, isAdmin = false, onEdit, onDelete }: CourseCardProps) {
+  const navigate = useNavigate();
+  const { enrollInCourse, isEnrolled } = useEnrollments();
+  const { toast } = useToast();
+  const isUserEnrolled = isEnrolled(course.id);
+  const handleEnroll = () => {
+    enrollInCourse(course.id);
+    toast({
+      title: "Inscrição realizada!",
+      description: `Você foi inscrito no curso "${course.title}".`,
+    });
+  };
+
+  const handleViewDetails = () => {
+    navigate(`/course/${course.id}`);
+  };
+
   const getLevelColor = (level: string) => {
     switch (level) {
       case 'Iniciante':
@@ -68,7 +87,11 @@ export function CourseCard({ course, isAdmin = false, onEdit, onDelete }: Course
           {/* Hover CTA */}
           {!isAdmin && (
             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-              <Button variant="hero" className="transform scale-90 group-hover:scale-100 transition-transform">
+              <Button 
+                variant="hero" 
+                className="transform scale-90 group-hover:scale-100 transition-transform"
+                onClick={handleViewDetails}
+              >
                 Ver detalhes
               </Button>
             </div>
@@ -126,10 +149,11 @@ export function CourseCard({ course, isAdmin = false, onEdit, onDelete }: Course
           </div>
           {!isAdmin && (
             <Button 
-              variant="hero" 
+              variant={isUserEnrolled ? "outline" : "hero"}
               className="px-6 transform hover:scale-105 transition-all"
+              onClick={isUserEnrolled ? handleViewDetails : handleEnroll}
             >
-              Inscrever-se
+              {isUserEnrolled ? "Ver curso" : "Inscrever-se"}
             </Button>
           )}
         </div>
